@@ -32,6 +32,8 @@ yarn start:prod
 
 - Functional recording
 
+  https://github.com/nnabinh/crypto-trading-platform/assets/10094591/4398aa7b-e709-4d69-a627-af795e83b64d
+
 ## 🧱 Project structure
 
 Manage custom android code
