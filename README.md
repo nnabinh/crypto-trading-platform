@@ -14,7 +14,7 @@ A simple crypto trading platform
 
 ### Notes:
 
-- If you want to test rendering performance, must try with Release build.
+- If you want to test rendering performance, must try with Release build on your Real device.
 
 ```
 yarn ios:prod

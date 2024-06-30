@@ -15,6 +15,8 @@ import { useAppDispatch } from 'src/store';
 import Toast from 'react-native-toast-message';
 
 const AUTO_UPDATE_QUOTES_INTERVAL = 60 * 1000; // 60 seconds
+const LASTEST_LISTINGS_POLLING_SIZE = 5000; // Max CMC allowed records
+const INITIAL_QUERY_SIZE = 100;
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -26,6 +28,11 @@ export default function HomeScreen() {
   const [page, setPage] = useState(1);
 
   /**
+   * Quickly display 100 items at first before the 5000 item size polling has result
+   */
+  useCmcLatestListingsQuery({ page: 1, pageSize: INITIAL_QUERY_SIZE });
+
+  /**
    * Polling/prefetching CMC latest listings data every 60 seconds
    */
   const {
@@ -33,14 +40,9 @@ export default function HomeScreen() {
     isLoading,
     isError,
   } = useCmcLatestListingsQuery(
-    { page: 1, pageSize: 5000 },
+    { page: 1, pageSize: LASTEST_LISTINGS_POLLING_SIZE },
     { pollingInterval: 1000 * 60 }
   );
-
-  /**
-   * Quickly display 100 items at first before the 5000 item size polling has result
-   */
-  useCmcLatestListingsQuery({ page: 1, pageSize: 100 });
 
   /**
    * Update latest prices of visible items every 60 seconds
