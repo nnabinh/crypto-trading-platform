@@ -2,7 +2,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { LastestListingCryptoCurrency } from './types';
 
-const DEFAULT_PAGE_SIZE = 50;
+export const DEFAULT_PAGE_SIZE = 50;
 
 function getPaginationParams(
   page: number,
@@ -78,7 +78,6 @@ export const cmcApi = createApi({
     >({
       providesTags: (_) => ['latestQuotes'],
       query: ({ ids }: { ids: number[] }) => {
-        console.tron('fetchin ids: ', ids);
         return `/v1/cryptocurrency/quotes/latest?id=${ids.join(',')}`;
       },
       // Read more about Pessimistic Updates

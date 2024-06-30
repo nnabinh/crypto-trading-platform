@@ -4,6 +4,7 @@ import { FlashList, ViewToken } from '@shopify/flash-list';
 import SearchBar from '../components/SearchBar';
 import CryptoRow from '../components/CryptoRow';
 import {
+  DEFAULT_PAGE_SIZE,
   cmcApi,
   useCmcLatestListingsQuery,
   useLazyCmcLatestQuotesQuery,
@@ -13,7 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppDispatch } from 'src/store';
 import Toast from 'react-native-toast-message';
 
-const AUTO_UPDATE_QUOTES_INTERVAL = 30 * 1000; // 60 seconds
+const AUTO_UPDATE_QUOTES_INTERVAL = 60 * 1000; // 60 seconds
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -24,24 +25,27 @@ export default function HomeScreen() {
   const [searchText, setSearchText] = useState('');
   const [page, setPage] = useState(1);
 
+  /**
+   * Polling/prefetching CMC latest listings data every 60 seconds
+   */
   const {
     data: latestListingsData = {},
     isLoading,
     isError,
-  } = useCmcLatestListingsQuery({ page });
+  } = useCmcLatestListingsQuery(
+    { page: 1, pageSize: 5000 },
+    { pollingInterval: 1000 * 60 }
+  );
+
+  /**
+   * Quickly display 100 items at first before the 5000 item size polling has result
+   */
+  useCmcLatestListingsQuery({ page: 1, pageSize: 100 });
 
   /**
    * Update latest prices of visible items every 60 seconds
    */
   const [fetchCmcLatestQuotes] = useLazyCmcLatestQuotesQuery();
-
-  /**
-   * Polling/prefetching CMC latest listings data every 60 seconds
-   */
-  useCmcLatestListingsQuery(
-    { page: 1, pageSize: 5000 },
-    { skip: isLoading, pollingInterval: 1000 * 60 }
-  );
 
   const data = useMemo(
     () =>
@@ -54,6 +58,14 @@ export default function HomeScreen() {
         .sort((a, b) => b.quote.USD.market_cap - a.quote.USD.market_cap),
     [latestListingsData, searchText]
   );
+
+  /**
+   * A minimal performance improvement to avoid rendering thoundsands of rows at first
+   * even though we're polling 5000 records every 60 seconds
+   */
+  const renderingData = useMemo(() => {
+    return data.slice(0, page * DEFAULT_PAGE_SIZE);
+  }, [data, page]);
 
   const onLoadMore = () => {
     if (!isLoading) {
@@ -99,9 +111,9 @@ export default function HomeScreen() {
         style={styles.searchBar}
       />
       <FlashList
-        data={data}
+        data={renderingData}
         renderItem={({ item }) => <CryptoRow {...item} />}
-        estimatedItemSize={100}
+        estimatedItemSize={64}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         refreshControl={
           <RefreshControl
